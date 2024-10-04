@@ -1,0 +1,47 @@
+{
+  "FOOD": {
+    "ZABKA": ["ZABKA"],
+    "JEDZENIE": ["Piekarnia","Spozywczy",
+    "DELIKATESY","Miesne","Warzywniak"]
+  },
+  "SUPERMARKETS": {"SUPERMARKETY": ["BIEDRONKA","CARREFOUR","LEWIATAN","SPAR","Kaufland","AUCHAN"]},
+  "MONTHLY": {
+    "KREDYT": ["Kapitał"],
+    "ABONAMENTY": ["HBO","ORANGE","Google Storage","SPOTIFY","Google Payment","Netflix"],
+    "RACHUNKI": ["TAURON","PGNIG"]
+  },
+  "CITY": {
+    "LOKALE": ["KAWIARNIA","Klubokawiarnia","Klub","Pub","CAFE","Lody"],
+    "ALKOHOL": ["PIWO","Beer","ALKOHOL","BAR"],
+    "RESTUARACJE": ["RESTAURACJA","SUBWAY", "RAMEN","BURGER","Bistro","FOOD","KFC","McDonalds","SUSHI","FISH","Orientalny"
+    ,"PIZZA","KEBAB","PIEROGI","Vegan"]
+  },
+  "SHOPPING": {
+    "SKLEP": ["SKLEP"],
+    "ZAKUPY": ["EMPIK","GALERIA","PEPCO","RESERVED","MEDIA MARKT","PRIMARK","Market","Decathlon"],
+    "UBRANIA": ["ZARA","VINTED","C & A"],
+    "ALLEGRO": ["allegro"]
+  },
+  "ATM/TRANSFER/BLIK": {
+    "WYPLATY": ["PLANET CASH","EURO-NET","PKO BP"],
+    "REVOLUT": ["REVOLUT"],
+    "BLIK": ["BLIK","Numer telefonu","numer telefonu"]
+  },
+  "TRANSPORT": {
+    "PALIWO": ["BP","ORLEN","Stacja paliw","CIRCLE K","SHELL"],
+    "AIRBNB": ["AIRBNB"],
+    "PARKING": ["PARKING"],
+    "TRANSPORT": ["jakdojade", "UBER","BOLT","POLREGIO","intercity","BIKE",
+    "MPK","TRAFICAR","PKP","Zdmk","BILETOMAT","LIME"]
+  },
+  "HEALTHCARE": {
+    "ZDROWIE": ["LUXMED"],
+    "APTEKA": ["APTEKA","PHARM"],
+    "HIGIENA": ["ROSSMANN"],
+    "FRYZJER": ["FRYZJER","SALON"]
+  },
+  "ENTERTAINMENT": {
+    "ROZRYWKA": ["CINEMA CITY","Ticketmaster"],
+    "GRY": ["NINTENDO","GOG","EPIC","STEAM","Blizzard"],
+  }
+}

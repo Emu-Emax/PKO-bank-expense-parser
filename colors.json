@@ -1,0 +1,12 @@
+{
+  "FOOD": "#FF69B4",
+  "CYKLICZNE": "#ADD8E6",
+  "SUPERMARKETS": "green",
+  "CITY": "#90EE90",
+  "SHOPPING": "#90EE90",
+  "ATM/TRANSFER/BLIK": "blue",
+  "TRANSPORT": "#FFD700",
+  "HEALTHCARE": "pink",
+  "ENTERTAINMENT": "orange",
+  "NIEZAKWALIFIKOWANE": "red"
+}

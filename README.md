@@ -1,7 +1,7 @@
 ## PKO BP Bank Expense Python Parser
 Easily convert your CSV summaries from the Polish PKO BP bank into detailed expense graphs with this Python script.
 
-![screen.png](https://postimg.cc/kRgMG6wq)
+[![screen.png](https://i.postimg.cc/D0qSC1XJ/screen.png)](https://postimg.cc/kRgMG6wq)
 
 ### Prerequisites:
 * Python

@@ -1,15 +1,20 @@
 ## PKO BP Bank Expense Python Parser
 Easily convert your CSV summaries from the Polish PKO BP bank into detailed expense graphs with this Python script.
 
-![screen.png](https://postimg.cc/kRgMG6wq)
+![screen.png](https://i.postimg.cc/J0cC5z1L/image.png)
 
 ### Prerequisites:
 * Python
 * Pandas
 * Matplotlib
+* Virtualenv
+
+To install:
+    virtualenv .pko
+    source .pko/bin/activate
+    pip install -r requirements.txt
 
 To run the application:
-
     python main.py INPUT_DATA.csv CATEGORIES.json (COLORS.json)
 
 Where:
@@ -22,9 +27,11 @@ Where:
 
 The output will be:
 
-**monthly_expenses.pdf** - charts with data
-
-**monthly_expenses_summary.csv** - table with all matched categories with monthly summary
+**report.pdf** - one pdf to rule them all:
+* top 30 transactions of all time,
+* Total Transaction Amount by Weekday histogram
+* Account Balance Over Time plot
+* Monthly expenses distribution by category
 
 **unmatched_transactions.csv** - list of unmatched transactions. Review them to add more categories to JSON file
 

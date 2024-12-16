@@ -6,15 +6,11 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from matplotlib.backends.backend_pdf import PdfPages
 
-def load_colors(file_path):
+def load_json(file_path):
     with open(file_path, 'r') as f:
         return json.load(f)
 
-def load_categories(file_path):
-    with open(file_path, 'r') as f:
-        return json.load(f)
-
-def load_transactions(csv_file):
+def load_prepare_transactions(csv_file):
     df = pd.read_csv(csv_file, delimiter=",", skiprows=1, encoding='ISO-8859-2')
 
     df.columns = [
@@ -23,35 +19,80 @@ def load_transactions(csv_file):
         "Original Amount", "Card Number", "", ""
     ]
 
-    # cleaning
     df['Transaction Date'] = pd.to_datetime(df['Transaction Date'], format='%Y-%m-%d')
     df['Amount'] = df['Amount'].astype(str)
     df['Amount'] = df['Amount'].str.replace(",", ".").astype(float)
     df = df[df['Amount'] < 0]
+    df['Amount'] = df['Amount'].abs()
 
-    return df[['Transaction Date', 'Description', 'Amount','Location',"Operation Date and Time"]]
+    return df[['Transaction Date', 'Description', 'Amount','Location',"Operation Date and Time","Balance After Transaction"]]
+
+def create_account_balance_over_time(df, pdf):
+    plt.figure(figsize=(10, 6))
+    plt.plot(df["Transaction Date"], df["Balance After Transaction"], marker='o', linestyle='-', color='b')
+    plt.title("Account Balance Over Time", fontsize=16)
+    plt.xlabel("Date and Time", fontsize=12)
+    plt.ylabel("Balance After Transaction", fontsize=12)
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    df['Rolling Balance'] = df['Balance After Transaction'].rolling(window=5).mean()
+    pdf.savefig()
+    plt.close()
+
+def plot_top_transactions(df, amount, pdf):
+    top_30_transactions = df.sort_values(by='Amount', ascending=False).head(amount)
+
+    plt.figure(figsize=(10, 6))
+    plt.axis('off')  # Turn off axes
+
+    table_data = [['Transaction Date', 'Description', 'Amount']] + top_30_transactions[['Transaction Date', 'Description', 'Amount']].values.tolist()
+    table = plt.table(cellText=table_data, colLabels=None, loc='center', cellLoc='center', colWidths=[0.2, 0.5, 0.2])
+
+    table.auto_set_font_size(False)
+    table.set_fontsize(8)
+    table.auto_set_column_width(col=list(range(len(table_data[0]))))
+    plt.title("Top 30 Transactions by Amount", fontsize=12, y=1.1)
+
+    pdf.savefig()
+    plt.close()
+
+def create_weekday_expenses_chart(df, pdf):
+    df["Weekday"] = df["Transaction Date"].dt.day_name()
+    weekday_sum = df.groupby("Weekday")["Amount"].sum()
+    weekday_sum = weekday_sum[["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]
+    plt.figure(figsize=(10, 6))
+    weekday_sum.plot(kind='bar', color='skyblue')
+    plt.title("Total Transaction Amount by Weekday", fontsize=16)
+    plt.xlabel("Weekday", fontsize=12)
+    plt.ylabel("Total Amount", fontsize=12)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("weekday_expenses.png", dpi=300)
+    pdf.savefig()
+    plt.close()
+
+
+
 
 
 def categorize_transaction(description, location, operation_date_time, categories):
-    # Normalize inputs
     normalized_description = unidecode.unidecode(description).lower() if isinstance(description, str) else ""
     normalized_location = unidecode.unidecode(location).lower() if isinstance(location, str) else ""
     normalized_operation = unidecode.unidecode(operation_date_time).lower() if isinstance(operation_date_time, str) else ""
 
-    # Check each top-level category and its keywords
     for broad_category, subcategories in categories.items():
         for subcategory, keywords in subcategories.items():
             for keyword in keywords:
                 normalized_keyword = unidecode.unidecode(keyword).lower()
-                # Check description, location, and operation date and time
                 if normalized_keyword in normalized_description or normalized_keyword in normalized_location or normalized_keyword in normalized_operation:
                     return broad_category, subcategory
 
-    return "NIEZAKWALIFIKOWANE", False  # No match found
+    return "UNQUALIFIED", False  # No match found
 
 
 def group_transactions_by_month(transactions, categories):
-    # Add a Month column to the DataFrame
     transactions['Month'] = transactions['Transaction Date'].dt.to_period('M')
 
     categorized_data = transactions.apply(
@@ -60,9 +101,6 @@ def group_transactions_by_month(transactions, categories):
 
     # Split the categorized data into two columns: Category and Matched
     transactions['Category'], transactions['Matched'] = zip(*categorized_data)
-
-    # Ensure amounts are positive by taking the absolute value
-    transactions['Amount'] = transactions['Amount'].abs()
 
     # Filter unmatched transactions and save them to a CSV file
     unmatched_transactions = transactions[transactions['Matched'] == False]
@@ -73,33 +111,19 @@ def group_transactions_by_month(transactions, categories):
 
     # Add a 'Total' column that sums all categories for each month
     monthly_summary['Total'] = monthly_summary.sum(axis=1)
+    #monthly_summary.drop(columns=['UNQUALIFIED'], inplace=True)
 
-    # Reorder columns to place 'Miscellaneous' just before 'Total'
-    if 'Miscellaneous' in monthly_summary.columns:
-        # Move 'Miscellaneous' to the end, right before 'Total'
-        columns = [col for col in monthly_summary.columns if col != 'Miscellaneous' and col != 'Total']
-        columns.append('Miscellaneous')
-        columns.append('Total')
-        monthly_summary = monthly_summary[columns]
-
-    # Format the summary to show two decimal places
     monthly_summary = monthly_summary.applymap(lambda x: f"{x:.2f}")
 
     return monthly_summary
 
-def save_all_bar_charts_to_pdf(monthly_summary, colors_map):
-    file_name='monthly_expenses.pdf'
-    # Open a PDF file to save the charts
-    with PdfPages(file_name) as pdf:
-        # Loop through each month in the summary and generate a bar chart
-        for month in monthly_summary.index:
-            # Exclude the 'Total' column from the plot
-            month_data = monthly_summary.loc[month].drop('Total').astype(float)
-            # Only include categories with non-zero expenses
-            month_data = month_data[month_data > 0]
+def create_summary_months(monthly_summary, colors_map, pdf):
+    for month in monthly_summary.index:
+        month_data = monthly_summary.loc[month].drop('Total').astype(float)
 
-            # Draw the bar chart for each month and save it in the PDF
-            draw_bar_chart_for_month(month, month_data, pdf, colors_map)
+        # Only include categories with non-zero expenses
+        month_data = month_data[month_data > 0]
+        draw_bar_chart_for_month(month, month_data, pdf, colors_map)
 
 
 
@@ -115,7 +139,6 @@ def draw_bar_chart_for_month(month, month_data, pdf, colors_map):
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
-    # Adding the numerical values above each bar
     for bar in bars.patches:
         height = bar.get_height()
         plt.annotate(f'{height:.2f}',
@@ -133,15 +156,17 @@ def main():
     transactions_file = sys.argv[1]
     categories_file = sys.argv[2]
     colors_file = sys.argv[3] if len(sys.argv) == 4 else None
-
-    transactions = load_transactions(transactions_file)
-    categories = load_categories(categories_file)
-    colors_map = load_colors(colors_file) if colors_file else {}
-
+    transactions = load_prepare_transactions(transactions_file)
+    categories = load_json(categories_file)
+    colors_map = load_json(colors_file) if colors_file else {}
     monthly_summary = group_transactions_by_month(transactions, categories)
-    save_all_bar_charts_to_pdf(monthly_summary, colors_map)
+    output_filename='report.pdf'
 
-    monthly_summary.to_csv('monthly_expenses_summary.csv')
+    with PdfPages(output_filename) as pdf:
+        plot_top_transactions(transactions, 30, pdf)
+        create_weekday_expenses_chart(transactions, pdf)
+        create_account_balance_over_time(transactions, pdf)
+        create_summary_months(monthly_summary, colors_map, pdf)
 
 if __name__ == "__main__":
     main()
